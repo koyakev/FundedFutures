@@ -98,7 +98,7 @@ export default function Profile({ navigation, route }) {
                                         <View style={[styles.progressBarContainer, { backgroundColor: '#FFD700' }]}>
                                             <Text style={styles.progressText}>{offer.status}</Text>
                                         </View>
-                                    ) : offer.status == 'in progress' ? (
+                                    ) : offer.status == 'pending' ? (
                                         <View style={[styles.progressBarContainer, { backgroundColor: 'red' }]}>
                                             <Text style={[styles.progressText, { color: 'white' }]}>{offer.status}</Text>
                                         </View>

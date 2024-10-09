@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Platform, FlatList, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, query, where, collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/dbConnection';
 
 export default function ScholarshipDetails({ navigation, route }) {
     const { id } = route.params;
     const [user, setUser] = useState(null);
-
+    const [organization, setOrg] = useState(null);
     const { offerId } = route.params;
     const [offer, setOffer] = useState(null);
 
@@ -27,10 +27,29 @@ export default function ScholarshipDetails({ navigation, route }) {
         fetchData();
     }, [id])
 
+    useEffect(() => {
+
+        const fetchData = async () => {
+            if (offer && offer.createdBy) {
+                try {
+                    const org = await getDocs(query(collection(db, 'organization'), where('orgEmail', '==', offer.createdBy)));
+                    setOrg(org.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data(),
+                    })));
+                } catch (error) {
+                    console.error('Error fetching document: ', error);
+                }
+            }
+        }
+        fetchData();
+    }, [offer])
+
     return (
         <>
             {
                 offer ? (
+
                     <View key={offer.id} style={styles.container} >
 
                         <StatusBar barStyle="light-content" backgroundColor="#4D4D4D" />
@@ -57,6 +76,18 @@ export default function ScholarshipDetails({ navigation, route }) {
                                     </TouchableOpacity>
                                 </View>
                             </View>
+                        </View>
+                        <View style={styles.grantor}>
+                            {organization && (
+                                organization.map(org => (
+                                    <TouchableOpacity
+                                        key={org.id}
+                                        onPress={() => navigation.navigate('Details', { id: id, institute: org.id })}
+                                    >
+                                        <Text style={styles.grantorName}>{org.orgName}</Text>
+                                    </TouchableOpacity>
+                                ))
+                            )}
                         </View>
 
                         <View style={styles.availableSlotsContainer}>
@@ -223,5 +254,13 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    grantor: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    grantorName: {
+        color: '#F7D66A',
     }
 });

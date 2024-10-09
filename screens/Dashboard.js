@@ -1,17 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, Pressable, Alert } from 'react-native';
-import { doc, getDoc, collection, getDocs, addDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase/dbConnection';
 import { Ionicons, MaterialIcons, AntDesign } from '@expo/vector-icons';
+
+const calculateSimilarity = (schoolA, schoolB) => {
+    const setA = new Set(schoolA);
+    const setB = new Set(schoolB);
+    const intersection = new Set([...setA].filter(x => setB.has(x)));
+    const union = new Set([...setA, ...setB]);
+    return intersection.size / union.size;
+}
 
 export default function Dashboard({ navigation, route }) {
     const { id } = route.params;
     const [user, setUser] = useState([]);
     const [organizations, setOrganizations] = useState([]);
-    const [availableOffers, setAvailableOffers] = useState([]);
+    const [offers, setOffers] = useState([]);
     const [visible, setVisible] = useState(false);
     const [selectedOption, setSelectedOption] = useState('');
     const [feedback, setFeedback] = useState('');
+    const [filteredOffers, setFilteredOffers] = useState([]);
 
     useEffect(() => {
         const fetch = async () => {
@@ -19,12 +28,21 @@ export default function Dashboard({ navigation, route }) {
                 const userDoc = await getDoc(doc(db, 'students', id));
                 setUser(userDoc.data());
 
-                const querySnapshot = await getDocs(collection(db, 'organization'));
-                const orgList = querySnapshot.docs.map(doc => ({
+                const queryOrgs = await getDocs(collection(db, 'organization'));
+                const orgList = queryOrgs.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                 }))
                 setOrganizations(orgList);
+
+                const queryOffers = await getDocs(collection(db, 'scholarships'));
+                const offerList = queryOffers.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }))
+                setOffers(offerList);
+
+
 
             } catch (error) {
                 console.error('Error fetching documents: ', error);
@@ -33,6 +51,22 @@ export default function Dashboard({ navigation, route }) {
 
         fetch();
     }, [id]);
+
+    useEffect(() => {
+        filterOffers(offers, [user.school]);
+    }, [offers]);
+
+    const filterOffers = (offersList, userSchool) => {
+        const recommendations = offersList
+            .map(offer => ({
+                ...offer,
+                similarity: calculateSimilarity(offer.schoolsOffered, userSchool),
+            }))
+            .filter(offer => offer.similarity > 0.0)
+            .sort((a, b) => b.similarity - a.similarity);
+
+        setFilteredOffers(recommendations);
+    }
 
     const send = async () => {
         try {
@@ -65,19 +99,56 @@ export default function Dashboard({ navigation, route }) {
             </View>
 
             <ScrollView contentContainerStyle={styles.contentContainer}>
-                {organizations.length > 0 ? (
-                    <>
-                        <View style={styles.titleContainer}>
-                            <Text style={styles.title}>List of Scholarship Grantors</Text>
-                            <View style={styles.headerIcons}>
-                                <TouchableOpacity>
-                                    <Ionicons name="help-circle-outline" size={28} color="#F7D66A" />
-                                </TouchableOpacity>
-                                <TouchableOpacity>
-                                    <MaterialIcons name="notifications" size={28} color="#F7D66A" />
-                                </TouchableOpacity>
+                <View style={styles.titleContainer}>
+                    <Text style={styles.title}>List of Scholarship Grantors</Text>
+                    <View style={styles.headerIcons}>
+                        <TouchableOpacity>
+                            <Ionicons name="help-circle-outline" size={28} color="#F7D66A" />
+                        </TouchableOpacity>
+                        <TouchableOpacity>
+                            <MaterialIcons name="notifications" size={28} color="#F7D66A" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {filteredOffers ? (
+                    <View style={styles.scholarshipContainer}>
+                        {filteredOffers.map((offer) => (
+                            <View key={offer.id}>
+                                <View style={styles.scholarshipItem}>
+                                    <View style={styles.scholarshipDetails}>
+                                        <Text style={styles.institutionName}>{offer.programName}</Text>
+                                        <Text style={styles.postDate}>Posted on {offer.dateAdded}</Text>
+                                        <Text style={styles.slotRow}>
+                                            <Text style={styles.availableSlotsText}>Available Slots:</Text>
+                                            <Text style={styles.availableSlotsValue}>{offer.applied}/{offer.slots}</Text>
+                                        </Text>
+                                    </View>
+                                    <View style={styles.externalBadge}>
+                                        <Text style={styles.externalText}>{offer.programType}</Text>
+                                    </View>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            navigation.navigate('ScholarshipDetails', { id: id, offerId: offer.id })
+                                        }}
+                                        style={styles.arrowButton}
+                                    >
+                                        <Ionicons name="chevron-forward" size={24} color="#4D4D4D" />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
-                        </View>
+                        ))}
+                    </View>
+                ) : (
+                    <View style={styles.loading}>
+                        <ActivityIndicator
+                            size="large"
+                            color="#F7D66A"
+                        />
+                    </View>
+                )}
+                {/* {organizations.length > 0 ? (
+                    <>
 
                         <View style={styles.scholarshipContainer}>
                             {organizations.map((org) => (
@@ -105,7 +176,7 @@ export default function Dashboard({ navigation, route }) {
                             color="#F7D66A"
                         />
                     </View>
-                )}
+                )} */}
             </ScrollView>
 
             <Modal
@@ -232,10 +303,9 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
     },
     scholarshipContainer: {
-        backgroundColor: '#F7D66A',
+        backgroundColor: '#E6D3A3',
         borderRadius: 15,
-        padding: 10,
-        paddingTop: 10,
+        padding: 15,
     },
     scholarshipItem: {
         flexDirection: 'row',
@@ -243,30 +313,89 @@ const styles = StyleSheet.create({
         backgroundColor: '#4D4D4D',
         borderRadius: 15,
         padding: 15,
-        marginTop: 10,
-        marginBottom: 10,
-        borderColor: '#4D4D4D',
-        borderWidth: 1,
+        marginBottom: 15
     },
     scholarshipDetails: {
-        flex: 1
+        flex: 1,
     },
     institutionName: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#FFFFFF'
+        color: '#FFFFFF',
     },
-    contact: {
+    postDate: {
         fontSize: 12,
-        color: '#FFFFFF'
+        color: '#FFFFFF',
+        marginBottom: 5,
+    },
+    slotRow: {
+        flexDirection: 'row',
+    },
+    availableSlotsText: {
+        fontSize: 14,
+        color: '#FFFFFF',
+        marginRight: 5,
+    },
+    availableSlotsValue: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#00FF00'
+    },
+    externalBadge: {
+        backgroundColor: '#FFD700',
+        borderRadius: 5,
+        paddingVertical: 2,
+        paddingHorizontal: 8,
+        marginRight: 10,
+    },
+    externalText: {
+        color: '#4D4D4D',
+        fontSize: 12,
+        fontWeight: 'bold',
     },
     arrowButton: {
         backgroundColor: '#FFD700',
-        borderRadius: 25,
-        padding: 10,
+        borderRadius: 15,
+        padding: 8,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
     },
+    // scholarshipContainer: {
+    //     backgroundColor: '#F7D66A',
+    //     borderRadius: 15,
+    //     padding: 10,
+    //     paddingTop: 10,
+    // },
+    // scholarshipItem: {
+    //     flexDirection: 'row',
+    //     alignItems: 'center',
+    //     backgroundColor: '#4D4D4D',
+    //     borderRadius: 15,
+    //     padding: 15,
+    //     marginTop: 10,
+    //     marginBottom: 10,
+    //     borderColor: '#4D4D4D',
+    //     borderWidth: 1,
+    // },
+    // scholarshipDetails: {
+    //     flex: 1
+    // },
+    // institutionName: {
+    //     fontSize: 16,
+    //     fontWeight: 'bold',
+    //     color: '#FFFFFF'
+    // },
+    // contact: {
+    //     fontSize: 12,
+    //     color: '#FFFFFF'
+    // },
+    // arrowButton: {
+    //     backgroundColor: '#FFD700',
+    //     borderRadius: 25,
+    //     padding: 10,
+    //     justifyContent: 'center',
+    //     alignItems: 'center'
+    // },
     nav: {
         flexDirection: 'row',
         justifyContent: 'space-around',

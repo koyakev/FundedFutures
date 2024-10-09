@@ -115,7 +115,10 @@ const Verification = ({ navigation, route }) => {
                 <Text style={styles.sendCodeText}>Send Code</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.verifyButton}>
+            <TouchableOpacity
+                style={styles.verifyButton}
+                onPress={verifyCode}
+            >
                 <Text style={styles.verifyButtonText}>Verify</Text>
             </TouchableOpacity>
 
