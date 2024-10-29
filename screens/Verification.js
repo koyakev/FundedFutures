@@ -79,13 +79,14 @@ const Verification = ({ navigation, route }) => {
                     email: user.email,
                     birthday: user.birthday,
                     gender: user.gender,
-                    password: user.password
+                    password: user.password,
+                    isDeactivated: false,
                 })
 
                 const imageRef = ref(storage, `${docRef.id}/${user.filename}`);
                 await uploadBytes(imageRef, user.blob);
 
-                navigation.navigate('Dashboard', { id: docRef.id });
+                navigation.navigate('Login');
             } catch (error) {
                 console.error('Error adding user: ', error);
             }

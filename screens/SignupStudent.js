@@ -12,7 +12,7 @@ import { db, storage } from '../firebase/dbConnection';
 import { collection, addDoc, getDocs, query, doc, where, getDoc } from 'firebase/firestore';
 
 export default function SignupStudent({ navigation }) {
-    const [schools, setSchools] = useState([]);
+    const [schools, setSchools] = useState(null);
 
     const [firstname, setFirstname] = useState('');
     const [lastname, setLastname] = useState('');
@@ -36,7 +36,6 @@ export default function SignupStudent({ navigation }) {
             const schoolsQuery = await getDoc(doc(db, 'system', 'partnerSchools'));
             setSchools(schoolsQuery.data());
         }
-
         fetchSchools();
     }, [])
 
@@ -167,166 +166,174 @@ export default function SignupStudent({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <ScrollView>
-                <View style={styles.header}>
-                    <Pressable
-                        onPress={() => navigation.goBack()}
-                    >
-                        <AntDesign name="arrowleft" size={50} color="#FADEAD" />
-                    </Pressable>
-                    <Text style={styles.label}>Sign Up</Text>
-                </View>
-                <View style={styles.form}>
-                    <Text style={[styles.label, { fontSize: 20, marginBottom: 20 }]}>Account Information</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="First Name"
-                        value={firstname}
-                        onChangeText={value => setFirstname(value)}
-                    />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Last Name"
-                        value={lastname}
-                        onChangeText={value => setLastname(value)}
-                    />
-
-                    <View>
-                        <Text style={[styles.label, { fontSize: 16, marginBottom: 5 }]}>Select School: </Text>
-                        <SelectList
-                            setSelected={(value) => setSchool(value)}
-                            data={schools.schools}
-                            boxStyles={[styles.input, { marginBottom: 0 }]}
-                        />
+            {schools ? (
+                <ScrollView>
+                    <View style={styles.header}>
+                        <Pressable
+                            onPress={() => navigation.goBack()}
+                        >
+                            <AntDesign name="arrowleft" size={50} color="#FADEAD" />
+                        </Pressable>
+                        <Text style={styles.label}>Sign Up</Text>
                     </View>
-
-                    <View>
-                        <Text style={[styles.label, { fontSize: 16, marginBottom: 5, marginTop: 20 }]}>Select Course: </Text>
-                        <SelectList
-                            setSelected={(value) => setProgram(value)}
-                            data={schools.courses}
-                            boxStyles={[styles.input, { marginBottom: 0 }]}
+                    <View style={styles.form}>
+                        <Text style={[styles.label, { fontSize: 20, marginBottom: 20 }]}>Account Information</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="First Name"
+                            value={firstname}
+                            onChangeText={value => setFirstname(value)}
                         />
-                    </View>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Last Name"
+                            value={lastname}
+                            onChangeText={value => setLastname(value)}
+                        />
 
-                    <TextInput
-                        style={[styles.input, { marginTop: 20 }]}
-                        placeholder="Student ID"
-                        value={studentId}
-                        onChangeText={value => setStudentId(value)}
-                    />
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Username"
-                        value={username}
-                        onChangeText={value => setUsername(value)}
-                    />
-                    <TextInput
-                        style={[styles.input, { marginBottom: 5 }]}
-                        placeholder="Email Address"
-                        value={email}
-                        onChangeText={value => setEmail(value)}
-                    />
-                    <Text style={[styles.label, { fontSize: 16, marginBottom: 10, color: '#B7A92A' }]}>* Must be a valid email address</Text>
-                    <View style={styles.horizontal}>
                         <View>
-                            <Text style={[styles.label, { fontSize: 16, marginBottom: 5 }]}>Birthday:</Text>
-                            <Pressable
-                                onPress={() => setShow(true)}
-                                style={styles.birthday}
-                            >
-                                <Text>{date.toDateString()}</Text>
-                            </Pressable>
-                            {show && (
-                                <DateTimePicker
-                                    value={date}
-                                    mode="date"
-                                    display="default"
-                                    onChange={onChange}
+                            <Text style={[styles.label, { fontSize: 16, marginBottom: 5 }]}>Select School: </Text>
+                            <SelectList
+                                setSelected={(value) => setSchool(value)}
+                                data={schools.schools}
+                                boxStyles={[styles.input, { marginBottom: 0 }]}
+                            />
+                        </View>
+
+                        <View>
+                            <Text style={[styles.label, { fontSize: 16, marginBottom: 5, marginTop: 20 }]}>Select Course: </Text>
+                            <SelectList
+                                setSelected={(value) => setProgram(value)}
+                                data={schools.courses}
+                                boxStyles={[styles.input, { marginBottom: 0 }]}
+                            />
+                        </View>
+
+                        <TextInput
+                            style={[styles.input, { marginTop: 20 }]}
+                            placeholder="Student ID"
+                            value={studentId}
+                            onChangeText={value => setStudentId(value)}
+                        />
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Username"
+                            value={username}
+                            onChangeText={value => setUsername(value)}
+                        />
+                        <TextInput
+                            style={[styles.input, { marginBottom: 5 }]}
+                            placeholder="Email Address"
+                            value={email}
+                            onChangeText={value => setEmail(value)}
+                        />
+                        <Text style={[styles.label, { fontSize: 16, marginBottom: 10, color: '#B7A92A' }]}>* Must be a valid email address</Text>
+                        <View style={styles.horizontal}>
+                            <View>
+                                <Text style={[styles.label, { fontSize: 16, marginBottom: 5 }]}>Birthday:</Text>
+                                <Pressable
+                                    onPress={() => setShow(true)}
+                                    style={styles.birthday}
+                                >
+                                    <Text>{date.toDateString()}</Text>
+                                </Pressable>
+                                {show && (
+                                    <DateTimePicker
+                                        value={date}
+                                        mode="date"
+                                        display="default"
+                                        onChange={onChange}
+                                    />
+                                )}
+                            </View>
+                            <View>
+                                <Text style={[styles.label, { fontSize: 16, marginBottom: 5 }]}>Gender:</Text>
+                                <SelectList
+                                    setSelected={(value) => setGender(value)}
+                                    data={[
+                                        { value: 'Male' },
+                                        { value: 'Female' },
+                                        { value: 'Prefer not to say' }
+                                    ]}
+                                    save='value'
+                                    boxStyles={styles.gender}
                                 />
+                            </View>
+                        </View>
+                        <View style={[styles.input, { flexDirection: 'row', justifyContent: 'space-between' }]}>
+                            <TextInput
+                                placeholder="Password"
+                                style={{ flex: 1 }}
+                                value={password}
+                                onChangeText={(value) => setPassword(value)}
+                                secureTextEntry={hidden}
+                            />
+                            <TouchableOpacity
+                                onPress={() => setHidden(!hidden)}
+                            >
+                                <AntDesign name="eye" size={24} color="#333333" />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={[styles.input, { flexDirection: 'row', justifyContent: 'space-between' }]}>
+                            <TextInput
+                                placeholder="Confirm Password"
+                                style={{ flex: 1 }}
+                                value={confirmPass}
+                                onChangeText={(value) => setConfirmPass(value)}
+                                secureTextEntry={hiddenC}
+                            />
+                            <TouchableOpacity
+                                onPress={() => setHiddenC(!hiddenC)}
+                            >
+                                <AntDesign name="eye" size={24} color="#333333" />
+                            </TouchableOpacity>
+                        </View>
+                        <Text
+                            style={[styles.label, { fontSize: 16, color: '#B7A92A' }]}
+                        >* One lowercased character{"\n"}* One uppercased character{"\n"}* One number{"\n"}* One special character</Text>
+                        <View>
+                            {!image ? (
+                                <TouchableOpacity
+                                    style={styles.imageUpload}
+                                    onPress={pickImage}
+                                >
+                                    <AntDesign name="plus" size={24} color="#555455" />
+                                    <Text>Upload ID</Text>
+                                </TouchableOpacity>
+                            ) : (
+                                <TouchableOpacity
+                                    style={styles.imageUpload}
+                                    onPress={pickImage}
+                                >
+                                    <AntDesign name="plus" size={24} color="#555455" />
+                                    <Text>Select New ID Image</Text>
+                                </TouchableOpacity>
                             )}
                         </View>
-                        <View>
-                            <Text style={[styles.label, { fontSize: 16, marginBottom: 5 }]}>Gender:</Text>
-                            <SelectList
-                                setSelected={(value) => setGender(value)}
-                                data={[
-                                    { value: 'Male' },
-                                    { value: 'Female' },
-                                    { value: 'Prefer not to say' }
-                                ]}
-                                save='value'
-                                boxStyles={styles.gender}
-                            />
-                        </View>
-                    </View>
-                    <View style={[styles.input, { flexDirection: 'row', justifyContent: 'space-between' }]}>
-                        <TextInput
-                            placeholder="Password"
-                            style={{ flex: 1 }}
-                            value={password}
-                            onChangeText={(value) => setPassword(value)}
-                            secureTextEntry={hidden}
-                        />
-                        <TouchableOpacity
-                            onPress={() => setHidden(!hidden)}
-                        >
-                            <AntDesign name="eye" size={24} color="#333333" />
-                        </TouchableOpacity>
-                    </View>
-                    <View style={[styles.input, { flexDirection: 'row', justifyContent: 'space-between' }]}>
-                        <TextInput
-                            placeholder="Confirm Password"
-                            style={{ flex: 1 }}
-                            value={confirmPass}
-                            onChangeText={(value) => setConfirmPass(value)}
-                            secureTextEntry={hiddenC}
-                        />
-                        <TouchableOpacity
-                            onPress={() => setHiddenC(!hiddenC)}
-                        >
-                            <AntDesign name="eye" size={24} color="#333333" />
-                        </TouchableOpacity>
-                    </View>
-                    <Text
-                        style={[styles.label, { fontSize: 16, color: '#B7A92A' }]}
-                    >* One lowercased character{"\n"}* One uppercased character{"\n"}* One number{"\n"}* One special character</Text>
-                    <View>
-                        {!image ? (
-                            <TouchableOpacity
-                                style={styles.imageUpload}
-                                onPress={pickImage}
-                            >
-                                <AntDesign name="plus" size={24} color="#555455" />
-                                <Text>Upload ID</Text>
-                            </TouchableOpacity>
+                        {!loading ? (
+                            <Pressable style={styles.continue} onPress={addStudent}>
+                                <Text style={styles.continueText}>Sign In</Text>
+                            </Pressable>
+
                         ) : (
-                            <TouchableOpacity
-                                style={styles.imageUpload}
-                                onPress={pickImage}
-                            >
-                                <AntDesign name="plus" size={24} color="#555455" />
-                                <Text>Select New ID Image</Text>
-                            </TouchableOpacity>
+                            <View style={styles.continue}>
+                                <ActivityIndicator
+                                    size="small"
+                                    color="#FADEAD"
+                                />
+                            </View>
                         )}
                     </View>
-                    {!loading ? (
-                        <Pressable style={styles.continue} onPress={addStudent}>
-                            <Text style={styles.continueText}>Sign In</Text>
-                        </Pressable>
-
-                    ) : (
-                        <View style={styles.continue}>
-                            <ActivityIndicator
-                                size="small"
-                                color="#FADEAD"
-                            />
-                        </View>
-                    )}
+                </ScrollView>
+            ) : (
+                <View style={styles.loading}>
+                    <ActivityIndicator
+                        size="large"
+                        color="#F7D66A"
+                    />
                 </View>
-            </ScrollView>
-
+            )}
         </View>
 
     )
@@ -396,4 +403,9 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: '#FADEAD',
     },
+    loading: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    }
 })

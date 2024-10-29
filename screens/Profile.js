@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, ActivityIn
 import { Ionicons, MaterialIcons, FontAwesome5, AntDesign } from '@expo/vector-icons';
 import { doc, getDoc, getDocs, query, collection, where } from 'firebase/firestore';
 import { db } from '../firebase/dbConnection';
+import Navigation from './Navigation';
 
 export default function Profile({ navigation, route }) {
     const { id } = route.params;
@@ -121,24 +122,7 @@ export default function Profile({ navigation, route }) {
                 </View>
             </ScrollView>
 
-            <View style={styles.nav}>
-                <TouchableOpacity
-                    onPress={() => navigation.navigate('Dashboard', { id: id })}
-                >
-                    <AntDesign name="home" size={30} color="#FADEAD" />
-                </TouchableOpacity>
-                <TouchableOpacity>
-                    <Ionicons name="person-circle-outline" size={30} color="#FADEAD" />
-                </TouchableOpacity>
-                <TouchableOpacity>
-                    <AntDesign name="profile" size={30} color="#FADEAD" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={() => navigation.popToTop()}
-                >
-                    <AntDesign name="logout" size={30} color="red" />
-                </TouchableOpacity>
-            </View>
+            <Navigation navigation={navigation} id={id} />
         </View>
     )
 }
@@ -195,20 +179,18 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         paddingBottom: 20,
     },
-    contentContainer: {
-        paddingHorizontal: 15,
-        paddingBottom: 20,
-    },
     scholarshipContainer: {
         backgroundColor: '#E6D3A3',
         borderRadius: 15,
         padding: 15,
+        elevation: 10,
     },
     scholarshipItem: {
         backgroundColor: '#4D4D4D',
         borderRadius: 15,
         padding: 15,
-        marginBottom: 15
+        marginBottom: 15,
+        elevation: 10,
     },
     scholarshipDetails: {
         flex: 1,

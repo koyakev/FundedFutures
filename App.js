@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { registerRootComponent } from 'expo';
 
 import Login from './screens/Login';
 import ChangePassword from './screens/ChangePassword';
@@ -12,6 +13,7 @@ import Details from './screens/Details';
 import Profile from './screens/Profile';
 import ScholarshipDetails from './screens/ScholarshipDetails';
 import Application from './screens/Application';
+import Messages from './screens/Messages';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,9 +30,12 @@ export default function App() {
         <Stack.Screen name="Profile" component={Profile} />
         <Stack.Screen name="ScholarshipDetails" component={ScholarshipDetails} />
         <Stack.Screen name="Application" component={Application} />
+        <Stack.Screen name="Messages" component={Messages} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({});
+
+registerRootComponent(App);
