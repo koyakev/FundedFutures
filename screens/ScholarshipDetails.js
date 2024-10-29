@@ -173,6 +173,7 @@ const styles = StyleSheet.create({
     title: {
         color: '#F7D66A',
         fontSize: 16,
+        width: 200,
         fontWeight: 'bold',
         textAlign: 'center',
     },

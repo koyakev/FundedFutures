@@ -129,6 +129,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
+        width: 200
     },
     institutionTypeContainer: {
         backgroundColor: '#F5CBA7',
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
         paddingVertical: 2,
         paddingHorizontal: 8,
         marginTop: 5,
-        marginBottom: 5
+        marginBottom: 5,
     },
     institutionType: {
         color: '#4D4D4D',
@@ -150,7 +151,8 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         paddingHorizontal: 15,
-        paddingBottom: 20
+        paddingBottom: 20,
+        elevation: 10
     },
     titleContainer: {
         flexDirection: 'row',
@@ -167,6 +169,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#E6D3A3',
         borderRadius: 15,
         padding: 15,
+        elevation: 10
     },
     scholarshipItem: {
         flexDirection: 'row',
@@ -174,7 +177,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#4D4D4D',
         borderRadius: 15,
         padding: 15,
-        marginBottom: 15
+        marginBottom: 15,
+        elevation: 5
     },
     scholarshipDetails: {
         flex: 1,
