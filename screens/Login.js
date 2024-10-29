@@ -118,7 +118,8 @@ const styles = StyleSheet.create({
         width: 300,
         padding: 10,
         borderRadius: 20,
-        marginBottom: 10
+        marginBottom: 10,
+        elevation: 5
     },
     forget: {
         alignSelf: 'flex-end',
@@ -135,11 +136,12 @@ const styles = StyleSheet.create({
         padding: 15,
         width: 200,
         borderRadius: 20,
-        marginBottom: 40
+        marginBottom: 40,
+        elevation: 5,
     },
     signinButton: {
         fontSize: 20,
-        color: "#555455"
+        color: "#555455",
     },
     signup: {
         alignSelf: 'center',

@@ -55,8 +55,6 @@ export default function Profile({ navigation, route }) {
         fetchData();
     }, [id])
 
-    const birthday = user && user.birthday ? new Date(user.birthday.seconds * 1000).toLocaleDateString() : null;
-
     return (
         <View style={styles.container}>
             {user ? (
@@ -135,7 +133,7 @@ const styles = StyleSheet.create({
     header: {
         padding: 15,
         backgroundColor: '#4D4D4D',
-        marginTop: 40,
+        marginTop: 30,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',

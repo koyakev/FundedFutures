@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, Pressable, Alert } from 'react-native';
 import { doc, getDoc, collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase/dbConnection';
-import { Ionicons, MaterialIcons, AntDesign } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import Navigation from './Navigation';
 // import * as tf from '@tensorflow/tfjs';
 // import '@tensorflow/tfjs-react-native';
@@ -49,6 +49,7 @@ export default function Dashboard({ navigation, route }) {
     const [organizations, setOrganizations] = useState([]);
     const [offers, setOffers] = useState([]);
     const [filteredOffers, setFilteredOffers] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // useEffect(() => {
     //     const initializeTensorFlow = async () => {
@@ -77,23 +78,16 @@ export default function Dashboard({ navigation, route }) {
                     ...doc.data(),
                 }))
                 setOffers(offerList);
-
-
-
             } catch (error) {
                 console.error('Error fetching documents: ', error);
             }
         }
-
         fetch();
     }, [id]);
 
     useEffect(() => {
-
-
         filterOffers(offers, [user.school]);
-
-    }, [offers, user]);
+    }, [offers, user, searchTerm]);
 
     const filterOffers = (offersList, userSchool) => {
         const recommendations = offersList
@@ -104,7 +98,10 @@ export default function Dashboard({ navigation, route }) {
                     similarity: calculateSimilarity(offer.schoolsOffered, userSchool),
                 }
             })
-            .filter(offer => offer.similarity > 0.0)
+            .filter(offer =>
+                offer.similarity > 0.0 &&
+                offer.programName.toLowerCase().includes(searchTerm.toLowerCase())
+            )
             .sort((a, b) => b.similarity - a.similarity);
 
         setFilteredOffers(recommendations);
@@ -117,6 +114,8 @@ export default function Dashboard({ navigation, route }) {
                     style={styles.searchBar}
                     placeholder="Search for Scholarship"
                     placeholderTextColor="4D4D4D"
+                    value={searchTerm}
+                    onChangeText={text => setSearchTerm(text)}
                 />
                 <TouchableOpacity style={styles.searchIcon}>
                     <Ionicons name="search" size={24} color="#4D4D4D" />
@@ -127,12 +126,7 @@ export default function Dashboard({ navigation, route }) {
                 <View style={styles.titleContainer}>
                     <Text style={styles.title}>List of Scholarship Grantors</Text>
                     <View style={styles.headerIcons}>
-                        <TouchableOpacity>
-                            <Ionicons name="help-circle-outline" size={28} color="#F7D66A" />
-                        </TouchableOpacity>
-                        <TouchableOpacity>
-                            <MaterialIcons name="notifications" size={28} color="#F7D66A" />
-                        </TouchableOpacity>
+                        <FontAwesome5 name="user-graduate" size={24} color="#F7D66A" />
                     </View>
                 </View>
 

@@ -30,6 +30,7 @@ export default function SignupStudent({ navigation }) {
     const [loading, setLoading] = useState(false);
     const [hidden, setHidden] = useState(true);
     const [hiddenC, setHiddenC] = useState(true);
+    const [contact, setContact] = useState('');
 
     useEffect(() => {
         const fetchSchools = async () => {
@@ -80,7 +81,7 @@ export default function SignupStudent({ navigation }) {
 
         console.log(passwordValid);
 
-        if (firstname == '' || lastname == '' || school == '' || program == '' || studentId == '' || username == '' || email == '' || gender == '' || password == '' || image == null) {
+        if (firstname == '' || lastname == '' || school == '' || contact == '' || program == '' || studentId == '' || username == '' || email == '' || gender == '' || password == '' || image == null) {
             Alert.alert('Please fill in necessary information');
             setLoading(false);
 
@@ -121,6 +122,7 @@ export default function SignupStudent({ navigation }) {
                 setGender('');
                 setPassword('');
                 setConfirmPass('');
+                setContact('');
 
                 const { uri } = await FileSystem.getInfoAsync(image);
                 const blob = await new Promise((resolve, reject) => {
@@ -148,6 +150,7 @@ export default function SignupStudent({ navigation }) {
                         lastname: lastname,
                         school: school,
                         course: program,
+                        contact: contact,
                         studentId: studentId,
                         username: username,
                         email: email,
@@ -215,7 +218,6 @@ export default function SignupStudent({ navigation }) {
                             value={studentId}
                             onChangeText={value => setStudentId(value)}
                         />
-
                         <TextInput
                             style={styles.input}
                             placeholder="Username"
@@ -229,6 +231,12 @@ export default function SignupStudent({ navigation }) {
                             onChangeText={value => setEmail(value)}
                         />
                         <Text style={[styles.label, { fontSize: 16, marginBottom: 10, color: '#B7A92A' }]}>* Must be a valid email address</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Contact Number"
+                            value={contact}
+                            onChangeText={value => setContact(value)}
+                        />
                         <View style={styles.horizontal}>
                             <View>
                                 <Text style={[styles.label, { fontSize: 16, marginBottom: 5 }]}>Birthday:</Text>
@@ -364,7 +372,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#FADEAD',
         padding: 10,
         borderRadius: 20,
-        marginBottom: 20
+        marginBottom: 20,
+        elevation: 5
     },
     horizontal: {
         flexDirection: 'row',
@@ -376,11 +385,13 @@ const styles = StyleSheet.create({
         padding: 13,
         borderRadius: 20,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        elevation: 5,
     },
     gender: {
         backgroundColor: '#FADEAD',
         borderRadius: 19.5,
+        elevation: 5,
     },
     continue: {
         marginTop: 20,
@@ -389,6 +400,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         alignItems: 'center',
         marginBottom: 10,
+        elevation: 5,
     },
     continueText: {
         color: '#F7D66A',
@@ -402,6 +414,7 @@ const styles = StyleSheet.create({
         padding: 14,
         borderRadius: 20,
         backgroundColor: '#FADEAD',
+        elevation: 5
     },
     loading: {
         flex: 1,
