@@ -14,6 +14,7 @@ import Profile from './screens/Profile';
 import ScholarshipDetails from './screens/ScholarshipDetails';
 import Application from './screens/Application';
 import Messages from './screens/Messages';
+import EditProfile from './screens/EditProfile';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +23,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }} >
         <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="EditProfile" component={EditProfile} />
         <Stack.Screen name="ChangePassword" component={ChangePassword} />
         <Stack.Screen name="SignupStudent" component={SignupStudent} />
         <Stack.Screen name="Verification" component={Verification} />

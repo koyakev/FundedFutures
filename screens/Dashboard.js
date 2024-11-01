@@ -4,60 +4,44 @@ import { doc, getDoc, collection, getDocs, addDoc, query, where } from 'firebase
 import { db } from '../firebase/dbConnection';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import Navigation from './Navigation';
-// import * as tf from '@tensorflow/tfjs';
-// import '@tensorflow/tfjs-react-native';
+import axios from 'axios';
 
-// const createPresenceTensor = (set, universe) => {
-//     if (!Array.isArray(set) || !Array.isArray(universe)) {
-//         throw new Error('Both set and universe must be arrays');
-//     }
-
-//     const presenceArray = universe.map(item => set.includes(item) ? 1 : 0);
-//     return tf.tensor1d(presenceArray);
-// }
-
-// const calculateSimilarity = (schoolA, schoolB) => {
-//     try {
-//         const validSchoolA = Array.isArray(schoolA) ? schoolA : [];
-//         const validSchoolB = Array.isArray(schoolB) ? schoolB : [];
-
-//         const universe = Array.from(new Set([...validSchoolA, ...validSchoolB]));
-//         const tensorA = createPresenceTensor(schoolA, universe);
-//         const tensorB = createPresenceTensor(schoolB, universe);
-//         const intersection = tf.minimum(tensorA, tensorB);
-//         const union = tf.maximum(tensorA, tensorB);
-//         const intersectionSum = intersection.sum().dataSync()[0];
-//         const unionSum = union.sum().dataSync()[0];
-//         const similarity = intersectionSum / unionSum;
-//         return similarity;
-//     } catch (error) {
-//         console.error('TensorFlow error: ', error)
-//     }
-// }
-
-const calculateSimilarity = (schoolA, schoolB) => {
-    const setA = new Set(schoolA);
-    const setB = new Set(schoolB);
-    const intersection = new Set([...setA].filter(x => setB.has(x)));
-    const union = new Set([...setA, ...setB]);
-    return intersection.size / union.size;
-}
+const API_KEY = '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';
 
 export default function Dashboard({ navigation, route }) {
     const { id } = route.params;
     const [user, setUser] = useState([]);
     const [organizations, setOrganizations] = useState([]);
     const [offers, setOffers] = useState([]);
+    const [filteredIds, setFilteredIds] = useState([]);
     const [filteredOffers, setFilteredOffers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // useEffect(() => {
-    //     const initializeTensorFlow = async () => {
-    //         await tf.ready();
-    //         console.log('TensorFlow.js is ready');
-    //     };
-    //     initializeTensorFlow();
-    // });
+    const offersIdList = new Set();
+
+    const query = async (data, id) => {
+        const response = await fetch(
+            'https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L12-v2',
+            {
+                headers: {
+                    Authorization: `Bearer ${API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                method: 'POST',
+                body: JSON.stringify(data),
+            }
+        );
+        const result = await response.json();
+        console.log("Result: ", id, result);
+
+        for (let i = 0; i < result.length; i++) {
+            if (result[i] >= 1) {
+                offersIdList.add(id);
+            }
+        }
+        //console.log(offersIdList);
+        setFilteredIds(Array.from(offersIdList));
+    }
 
     useEffect(() => {
         const fetch = async () => {
@@ -83,44 +67,41 @@ export default function Dashboard({ navigation, route }) {
             }
         }
         fetch();
-    }, [id]);
+    }, []);
 
     useEffect(() => {
-        filterOffers(offers, [user.school]);
-    }, [offers, user, searchTerm]);
+        const runQuery = async () => {
+            offers.map(offer => {
+                query({
+                    'inputs': {
+                        'source_sentence': user.school,
+                        'sentences': offer.schoolsOffered,
+                    }
+                }, offer.id)
+            })
+        }
+        runQuery();
+    }, [offers, user.schools]);
 
-    const filterOffers = (offersList, userSchool) => {
-        const recommendations = offersList
-            .map(offer => {
-                const schoolOffered = Array.isArray(offer.schoolsOffered) ? offer.schoolsOffered : [];
+    useEffect(() => {
+        console.log("FilteredIds: ", filteredIds);
+        const fetch = async () => {
+            const offerPromises = filteredIds.map(async (id) => {
+                const filtered = await getDoc(doc(db, 'scholarships', id));
                 return {
-                    ...offer,
-                    similarity: calculateSimilarity(offer.schoolsOffered, userSchool),
+                    id: filtered.id,
+                    ...filtered.data()
                 }
             })
-            .filter(offer =>
-                offer.similarity > 0.0 &&
-                offer.programName.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-            .sort((a, b) => b.similarity - a.similarity);
 
-        setFilteredOffers(recommendations);
-    }
+            const offers = await Promise.all(offerPromises);
+            setFilteredOffers(offers);
+        };
+        fetch();
+    }, [filteredIds]);
 
     return (
         <View style={styles.container}>
-            <View style={styles.searchContainer}>
-                <TextInput
-                    style={styles.searchBar}
-                    placeholder="Search for Scholarship"
-                    placeholderTextColor="4D4D4D"
-                    value={searchTerm}
-                    onChangeText={text => setSearchTerm(text)}
-                />
-                <TouchableOpacity style={styles.searchIcon}>
-                    <Ionicons name="search" size={24} color="#4D4D4D" />
-                </TouchableOpacity>
-            </View>
 
             <ScrollView contentContainerStyle={styles.contentContainer}>
                 <View style={styles.titleContainer}>
@@ -166,36 +147,7 @@ export default function Dashboard({ navigation, route }) {
                         />
                     </View>
                 )}
-                {/* {organizations.length > 0 ? (
-                    <>
 
-                        <View style={styles.scholarshipContainer}>
-                            {organizations.map((org) => (
-                                <View key={org.id} style={styles.scholarshipItem}>
-                                    <View style={styles.scholarshipDetails}>
-                                        <Text style={styles.institutionName}>{org.orgName}</Text>
-                                        <Text style={styles.contact}>{org.orgEmail}</Text>
-                                    </View>
-                                    <TouchableOpacity
-                                        style={styles.arrowButton}
-                                        onPress={() => navigation.navigate('Details', { id: id, institute: org.id })}
-                                    >
-                                        <Ionicons name='chevron-forward' size={24} color='#4D4D4D' />
-                                    </TouchableOpacity>
-                                </View>
-                            ))}
-                        </View>
-
-
-                    </>
-                ) : (
-                    <View style={styles.loading}>
-                        <ActivityIndicator
-                            size="large"
-                            color="#F7D66A"
-                        />
-                    </View>
-                )} */}
             </ScrollView>
 
 
@@ -215,24 +167,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginLeft: 20,
     },
-    searchContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginLeft: 15,
-        marginRight: 15,
-        marginTop: 40,
-        paddingHorizontal: 15,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 25
-    },
-    searchBar: {
-        flex: 1,
-        height: 40
-    },
-    searchIcon: {
-
-    },
     title: {
         fontSize: 20,
         fontWeight: 'bold',
@@ -247,6 +181,7 @@ const styles = StyleSheet.create({
     contentContainer: {
         paddingHorizontal: 15,
         paddingBottom: 20,
+        marginTop: 30
     },
     scholarshipContainer: {
         backgroundColor: '#E6D3A3',

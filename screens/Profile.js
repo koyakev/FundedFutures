@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, ActivityIndicator, Pressable } from 'react-native';
-import { Ionicons, MaterialIcons, FontAwesome5, AntDesign } from '@expo/vector-icons';
+import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { Ionicons, MaterialIcons, FontAwesome, AntDesign } from '@expo/vector-icons';
 import { doc, getDoc, getDocs, query, collection, where } from 'firebase/firestore';
-import { db } from '../firebase/dbConnection';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../firebase/dbConnection';
 import Navigation from './Navigation';
 
 export default function Profile({ navigation, route }) {
@@ -10,7 +11,7 @@ export default function Profile({ navigation, route }) {
     const [user, setUser] = useState(null);
     const [applications, setApplications] = useState([]);
     const [offerDetails, setOfferDetails] = useState([]);
-
+    const [imageUri, setImageUri] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -55,22 +56,47 @@ export default function Profile({ navigation, route }) {
         fetchData();
     }, [id])
 
+    useEffect(() => {
+        const fetchProfilePicture = async () => {
+            if (!user) return;
+
+            try {
+                const imageRef = ref(storage, `${id}/${user.profilePicture}`);
+
+                const url = await getDownloadURL(imageRef);
+                setImageUri(url);
+            } catch (error) {
+                console.error('Error: ', error)
+            }
+        }
+        fetchProfilePicture();
+    }, [user])
+
     return (
         <View style={styles.container}>
             {user ? (
                 <>
                     <View style={styles.header}>
                         <View style={styles.profileContainer}>
-                            <View style={styles.profileImage}>
-                                <FontAwesome5 name="user-graduate" size={35} color="black" />
-                            </View>
+                            {imageUri && (
+                                <Image
+                                    source={{ uri: imageUri }}
+                                    style={styles.profileImage}
+                                    resizeMode="cover"
+                                />
+                            )
+                            }
                             <View style={styles.profileDetails}>
                                 <Text style={styles.profileName}>{user.firstname} {user.lastname}</Text>
                                 <Text style={styles.profileEmail}>{user.email}</Text>
                                 <Text style={styles.profileContact}>{user.username}</Text>
                             </View>
                         </View>
-
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('EditProfile', { id: id })}
+                        >
+                            <FontAwesome name="edit" size={30} color="#F7D66A" />
+                        </TouchableOpacity>
                     </View>
 
                 </>
@@ -152,6 +178,9 @@ const styles = StyleSheet.create({
     },
     profileDetails: {
         marginLeft: 10,
+    },
+    detailsContainer: {
+        flexDirection: 'row'
     },
     profileName: {
         fontSize: 18,

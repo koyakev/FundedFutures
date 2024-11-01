@@ -86,13 +86,14 @@ export default function Messages({ navigation, route }) {
                                             From: {message.sender}
                                         </Text>
                                         <Text style={styles.sentdate}>
-                                            {message.sentdate.toDate().toLocaleDateString('en-us', {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                            })}
+                                            {message.dateSent &&
+                                                message.dateSent.toDate().toLocaleDateString('en-us', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                })}
                                         </Text>
                                     </View>
                                     <Modal
@@ -125,7 +126,7 @@ export default function Messages({ navigation, route }) {
                                                     Date:
                                                 </Text>
                                                 <Text style={styles.modalText}>
-                                                    {message.sentdate.toDate().toLocaleDateString('en-us', {
+                                                    {message.dateSent.toDate().toLocaleDateString('en-us', {
                                                         year: 'numeric',
                                                         month: 'long',
                                                         day: 'numeric',
@@ -203,6 +204,7 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 15,
         elevation: 10,
+        marginBottom: 10,
     },
     subject: {
         color: 'white',

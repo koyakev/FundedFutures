@@ -80,6 +80,7 @@ const Verification = ({ navigation, route }) => {
                     birthday: user.birthday,
                     gender: user.gender,
                     password: user.password,
+                    profilePicture: user.filename,
                     isDeactivated: false,
                 })
 
